@@ -1,0 +1,45 @@
+# Fly.io deploy config for webcoda-colleague-agent.
+# Generated for sub-sprint 2f-i. Kun runs `flyctl launch --no-deploy` (or
+# `flyctl apps create` + this file as-is) and `flyctl deploy` in 2f-ii.
+#
+# Region: syd (Sydney — closest to Webcoda).
+# Hosting plan: free tier, shared-cpu-1x, 512 MB RAM, 1 GB persistent volume.
+
+app = "webcoda-colleague-agent"
+primary_region = "syd"
+
+[build]
+  # Multi-stage build defined in ./Dockerfile
+
+[env]
+  # Non-secret runtime config. Secrets (LLM_*, RAG_INGEST_URL) MUST be set via
+  # `flyctl secrets set …` — never commit them here.
+  DATA_DIR = "/data/colleagues"
+  MAX_FILE_BYTES = "20971520"          # 20 MB per uploaded file
+  MAX_TOTAL_UPLOAD_BYTES = "104857600" # 100 MB per upload request
+
+# 1 GB volume mounted at /data — must exist before first deploy. Create with:
+#   flyctl volumes create data --size 1 --region syd
+[[mounts]]
+  source = "data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+# Required secrets to set before first deploy:
+#   flyctl secrets set \
+#     LLM_BASE_URL=https://api.anthropic.com/v1 \
+#     LLM_MODEL=claude-sonnet-4-6 \
+#     LLM_API_KEY=<rotated-anthropic-key> \
+#     RAG_INGEST_URL=https://rag-chatbot-v3-production.up.railway.app/ingest/text
