@@ -33,7 +33,7 @@ A single markdown file that defines the colleague's voice and personality. Nothi
 
 This file lives at `.claude/agents/{slug}.md` and follows Claude Code's agent format. It contains:
 
-**Identity** — name, role, company, seniority level. "You are Oleg, senior project manager and tech lead at Webcoda."
+**Identity** — name, role, company, seniority level. "You are Donald Trump, senior project manager and tech lead at Webcoda."
 
 **Voice** — the specific speech patterns that make them recognizable. Not generic "speaks directly" but concrete: "opens messages by addressing the other person by name (115 of 832 messages start with the name)", "median message length is 48 characters", "says '2 mins I'll call' when a topic gets complex", "uses 'How are you tracking?' as a check-in".
 
@@ -120,9 +120,9 @@ read the skill file and follow its instructions.
 
 At runtime, when the AI determines a task matches a skill, it reads the skill file using the `Read` tool and follows the instructions. This mechanism has been **verified by live test** — a Claude Code subagent successfully read and interpreted skill files from `.claude/skills/` at runtime.
 
-**Why it's separate:** the persona defines the colleague's TONE (blunt, direct, conclusion-first). The skill defines the PROCESS (write a failing test first, then minimal implementation, then refactor). These compose naturally without modification — the AI follows the skill's process while speaking in the persona's voice. You don't need "Oleg's version of test-driven-development" — you need "TDD + Oleg's persona loaded simultaneously." Claude handles the merge.
+**Why it's separate:** the persona defines the colleague's TONE (blunt, direct, conclusion-first). The skill defines the PROCESS (write a failing test first, then minimal implementation, then refactor). These compose naturally without modification — the AI follows the skill's process while speaking in the persona's voice. You don't need "Donald's version of test-driven-development" — you need "TDD + Donald's persona loaded simultaneously." Claude handles the merge.
 
-If the colleague's working style genuinely contradicts a skill's process (e.g., "Oleg never writes tests first — he writes code then tests"), that override goes in the persona's Layer 0 hard rules, not as a skill modification. Persona Layer 0 has the highest priority and overrides everything else.
+If the colleague's working style genuinely contradicts a skill's process (e.g., "Donald never writes tests first — he writes code then tests"), that override goes in the persona's Layer 0 hard rules, not as a skill modification. Persona Layer 0 has the highest priority and overrides everything else.
 
 ---
 
@@ -130,11 +130,11 @@ If the colleague's working style genuinely contradicts a skill's process (e.g., 
 
 The user installs the Agent Package by copying its contents into their project's `.claude/` folder and restarting Claude Code. The colleague becomes available as an agent type.
 
-When the user says "Ask Oleg to review this PR" or dispatches `Agent({ subagent_type: 'oleg', prompt: 'Review this PR' })`:
+When the user says "Ask Donald to review this PR" or dispatches `Agent({ subagent_type: 'Donald', prompt: 'Review this PR' })`:
 
 ```
-1. Claude loads agents/oleg.md
-   → adopts the persona (Oleg's voice, personality, Layer 0 rules)
+1. Claude loads agents/donald.md
+   → adopts the persona (Donald's voice, personality, Layer 0 rules)
 
 2. Claude sees the task is "review a PR"
    → matches it to the "Code Review" capability in the agent file
@@ -144,11 +144,11 @@ When the user says "Ask Oleg to review this PR" or dispatches `Agent({ subagent_
 3. Claude needs project context to review meaningfully
    → calls search_knowledge_base MCP tool (searches all knowledge)
    → retrieves relevant technical context from the knowledge base
-   → grounds the review in Oleg's actual domain knowledge
+   → grounds the review in Donald's actual domain knowledge
 
 4. Claude produces the review
    → structured per the code review skill (Critical / Important / Suggestions)
-   → voiced per Oleg's persona (blunt, direct, short sentences, 
+   → voiced per Donald's persona (blunt, direct, short sentences, 
      "what's the impact?" energy)
    → grounded in retrieved knowledge (specific project facts, not generic advice)
 ```
@@ -167,8 +167,8 @@ When the user says "Ask Oleg to review this PR" or dispatches `Agent({ subagent_
 │
 ├── meta.json                     ← package metadata
 │   {
-│     "name": "Oleg Putilin",
-│     "slug": "oleg",
+│     "name": "Donald Trump",
+│     "slug": "donald",
 │     "role": "Senior manager / Tech Lead",
 │     "skills": ["brainstorming", "writing-plans", 
 │                "requesting-code-review", "systematic-debugging"],
@@ -187,7 +187,7 @@ When the user says "Ask Oleg to review this PR" or dispatches `Agent({ subagent_
 │
 └── .claude/
     ├── agents/
-    │   └── oleg.md               ← THE agent file (~100-150 lines)
+    │   └── donald.md               ← THE agent file (~100-150 lines)
     │       │
     │       ├── § Persona
     │       │   Layer 0 hard rules (highest priority, never violated)
