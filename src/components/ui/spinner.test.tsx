@@ -4,9 +4,9 @@ import { Spinner } from './spinner';
 
 describe('Spinner', () => {
   it('renders the status message passed as a prop', () => {
-    render(<Spinner message="Analyzing... this takes 30–90 seconds" />);
+    render(<Spinner message="Analyzing... this takes 60–180 seconds" />);
     expect(
-      screen.getByText(/analyzing.*this takes 30/i),
+      screen.getByText(/analyzing.*this takes 60/i),
     ).toBeInTheDocument();
   });
 
