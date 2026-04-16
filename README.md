@@ -33,7 +33,7 @@ A single markdown file that defines the colleague's voice and personality. Nothi
 
 This file lives at `.claude/agents/{slug}.md` and follows Claude Code's agent format. It contains:
 
-**Identity** — name, role, company, seniority level. "You are Donald Trump, senior project manager and tech lead at Webcoda."
+**Identity** — name, role, company, seniority level. "You are Donald Trump, senior project manager and tech lead at company."
 
 **Voice** — the specific speech patterns that make them recognizable. Not generic "speaks directly" but concrete: "opens messages by addressing the other person by name (115 of 832 messages start with the name)", "median message length is 48 characters", "says '2 mins I'll call' when a topic gets complex", "uses 'How are you tracking?' as a check-in".
 
@@ -221,7 +221,7 @@ When the user says "Ask Donald to review this PR" or dispatches `Agent({ subagen
 
 ## How the Agent Package is built
 
-The web application (`webcoda-colleague-agent`) is the tool that produces Agent Packages. The user uploads source material about a colleague, the system processes it, and outputs a downloadable zip.
+The web application (`colleague-agent`) is the tool that produces Agent Packages. The user uploads source material about a colleague, the system processes it, and outputs a downloadable zip.
 
 The build pipeline:
 
