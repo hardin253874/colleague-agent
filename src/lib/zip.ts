@@ -8,7 +8,7 @@ import { buildReadme } from './readme';
 interface PackageMeta {
   slug: string;
   name: string;
-  role: string;
+  roles: string[];
   skills: string[];
   createdAt?: string;
 }
@@ -65,7 +65,7 @@ export async function buildZipBuffer(slug: string): Promise<Buffer> {
   const readme = buildReadme({
     name: meta.name,
     slug,
-    role: meta.role,
+    roles: meta.roles,
     skills: meta.skills,
   });
 

@@ -3,7 +3,7 @@ import type { Role } from './role-skills';
 export interface ComposeAgentFileInput {
   name: string;
   slug: string;
-  role: Role;
+  roles: Role[];
   personaText: string;
   skills: string[];
   gender?: string;
@@ -11,14 +11,19 @@ export interface ComposeAgentFileInput {
   impression?: string;
 }
 
-function renderFrontmatter(slug: string, name: string, role: Role): string {
-  const description = `${name} — ${role} colleague agent. Adopt the persona below and use the configured knowledge base + skill files for work tasks.`;
+function joinRoles(roles: Role[]): string {
+  return roles.join(' / ');
+}
+
+function renderFrontmatter(slug: string, name: string, roles: Role[]): string {
+  const roleLabel = joinRoles(roles);
+  const description = `${name} — ${roleLabel} colleague agent. Adopt the persona below and use the configured knowledge base + skill files for work tasks.`;
   return `---\nname: ${slug}\ndescription: ${description}\n---\n`;
 }
 
 function renderIdentityBlock(input: ComposeAgentFileInput): string {
   const lines: string[] = [];
-  lines.push(`**Identity:** ${input.name} — ${input.role}`);
+  lines.push(`**Identity:** ${input.name} — ${joinRoles(input.roles)}`);
   if (input.gender) lines.push(`**Gender:** ${input.gender}`);
   if (input.mbti) lines.push(`**MBTI:** ${input.mbti}`);
   if (input.impression) {
@@ -43,9 +48,13 @@ function renderCapabilitiesTable(skills: string[]): string {
  * Composes the `.claude/agents/{slug}.md` markdown body per Plan 05 § Agent
  * file structure. Pure — deterministic output for identical input, no
  * timestamps, no randomness (so tests can golden-compare).
+ *
+ * `roles` is always an array (multi-role colleagues are the v1 baseline; a
+ * single-role colleague is `['Developer']`). Renders joined with " / " in
+ * the frontmatter description and Identity line.
  */
 export function composeAgentFile(input: ComposeAgentFileInput): string {
-  const frontmatter = renderFrontmatter(input.slug, input.name, input.role);
+  const frontmatter = renderFrontmatter(input.slug, input.name, input.roles);
   const identity = renderIdentityBlock(input);
   const capabilities = renderCapabilitiesTable(input.skills);
 

@@ -50,7 +50,7 @@ describe('writeJson / readJson', () => {
   it('round-trips a JSON object', async () => {
     const dir = await ensureColleagueDir('oleg-a7fx2k');
     const target = path.join(dir, 'meta.json');
-    const data = { slug: 'oleg-a7fx2k', name: 'Oleg', role: 'Developer' };
+    const data = { slug: 'oleg-a7fx2k', name: 'Oleg', roles: ['Developer'] };
 
     await writeJson(target, data);
     const read = await readJson<typeof data>(target);

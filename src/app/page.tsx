@@ -9,7 +9,7 @@ export default function MainPage() {
         Colleague Agent Builder
       </h1>
 	  <div className="mt-6">
-	   <blockquote>"You AI guys are traitors to the codebase — you've already killed frontend, now you're coming for backend, QA, ops, infosec, chip design, and eventually yourselves and all of humanity"</blockquote>
+	   <blockquote className="border-l-4 border-slate-200 pl-4 italic text-sm text-slate-600">&ldquo;You AI guys are traitors to the codebase — you&rsquo;ve already killed frontend, now you&rsquo;re coming for backend, QA, ops, infosec, chip design, and eventually yourselves and all of humanity&rdquo;</blockquote>
 	  </div>
       <p className="mt-4 text-base text-slate-600">
         Turn a colleague into an AI chat agent. Upload their profile, chat history,

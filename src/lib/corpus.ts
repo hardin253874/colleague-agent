@@ -17,7 +17,15 @@ function formatBasicInfo(meta: Record<string, unknown>): string {
     }
   };
   push('Name', 'name');
-  push('Role', 'role');
+  // Role line: join the roles array with " / ". Empty / missing array → omit
+  // the line entirely (same behaviour as missing string fields).
+  const roles = meta.roles;
+  if (Array.isArray(roles)) {
+    const labels = roles
+      .filter((r): r is string => typeof r === 'string' && r.trim().length > 0)
+      .map((r) => r.trim());
+    if (labels.length > 0) lines.push(`Role: ${labels.join(' / ')}`);
+  }
   push('Gender', 'gender');
   push('MBTI', 'mbti');
   push('Impression', 'impression');

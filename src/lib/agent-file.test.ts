@@ -4,7 +4,7 @@ import { composeAgentFile } from './agent-file';
 const BASE = {
   name: 'Oleg Putilin',
   slug: 'oleg',
-  role: 'Developer' as const,
+  roles: ['Developer'] as ('Developer' | 'PM' | 'Designer' | 'Evaluator')[],
   personaText: 'Oleg is a senior developer who opens messages by name.',
   skills: ['test-driven-development', 'systematic-debugging'],
 };
@@ -59,5 +59,15 @@ describe('composeAgentFile', () => {
 
   it('emits a stable output for the same input (no timestamps, no randomness)', () => {
     expect(composeAgentFile(BASE)).toBe(composeAgentFile(BASE));
+  });
+
+  it('renders multiple roles joined with " / " in the frontmatter description', () => {
+    const out = composeAgentFile({ ...BASE, roles: ['Developer', 'PM'] });
+    expect(out).toMatch(/description: .*Developer \/ PM/);
+  });
+
+  it('renders multiple roles joined with " / " in the Identity line', () => {
+    const out = composeAgentFile({ ...BASE, roles: ['Developer', 'PM'] });
+    expect(out).toContain('**Identity:** Oleg Putilin — Developer / PM');
   });
 });

@@ -35,7 +35,7 @@ describe('assembleCorpus', () => {
   it('includes a BASIC INFO section from meta fields', async () => {
     await seed(
       'alice-1',
-      { name: 'Alice', role: 'PM', gender: 'F', mbti: 'INTJ', impression: 'sharp' },
+      { name: 'Alice', roles: ['PM'], gender: 'F', mbti: 'INTJ', impression: 'sharp' },
       {},
     );
     const out = await assembleCorpus('alice-1');
@@ -47,12 +47,18 @@ describe('assembleCorpus', () => {
     expect(out.text).toContain('Impression: sharp');
   });
 
+  it('joins multiple roles with " / " in the Role line', async () => {
+    await seed('multi-1', { name: 'Multi', roles: ['Developer', 'PM'] }, {});
+    const out = await assembleCorpus('multi-1');
+    expect(out.text).toContain('Role: Developer / PM');
+  });
+
   it('treats sourceFiles[0] as profile when there are 2+ files', async () => {
     await seed(
       'bob-1',
       {
         name: 'Bob',
-        role: 'Developer',
+        roles: ['Developer'],
         sourceFiles: ['profile.md', 'chat-a.md', 'chat-b.md'],
       },
       {
@@ -74,7 +80,7 @@ describe('assembleCorpus', () => {
   it('treats a single sourceFile as chat history (no profile)', async () => {
     await seed(
       'carol-1',
-      { name: 'Carol', role: 'Designer', sourceFiles: ['only-chat.md'] },
+      { name: 'Carol', roles: ['Designer'], sourceFiles: ['only-chat.md'] },
       { 'only-chat.md': 'just a chat export' },
     );
     const out = await assembleCorpus('carol-1');
@@ -87,7 +93,7 @@ describe('assembleCorpus', () => {
   it('aggregates parser warnings', async () => {
     await seed(
       'dave-1',
-      { name: 'Dave', role: 'Developer', sourceFiles: ['a.md', 'bad.json'] },
+      { name: 'Dave', roles: ['Developer'], sourceFiles: ['a.md', 'bad.json'] },
       { 'a.md': 'ok', 'bad.json': '{not valid' },
     );
     const out = await assembleCorpus('dave-1');
@@ -96,7 +102,7 @@ describe('assembleCorpus', () => {
   });
 
   it('works with no source files at all', async () => {
-    await seed('eve-1', { name: 'Eve', role: 'PM', sourceFiles: [] }, {});
+    await seed('eve-1', { name: 'Eve', roles: ['PM'], sourceFiles: [] }, {});
     const out = await assembleCorpus('eve-1');
     expect(out.text).toContain('=== BASIC INFO ===');
     expect(out.hasProfile).toBe(false);

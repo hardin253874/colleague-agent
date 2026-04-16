@@ -13,7 +13,7 @@ let prevDataDir: string | undefined;
 const SEED_META = {
   slug: 'oleg',
   name: 'Oleg Putilin',
-  role: 'Developer',
+  roles: ['Developer'],
   skills: ['writing-plans', 'test-driven-development'],
   createdAt: '2026-04-14T00:00:00Z',
 };

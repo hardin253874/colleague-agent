@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 type PackageMeta = {
   name: string;
   slug: string;
-  role: string;
+  roles: string[];
   skills: string[];
   createdAt?: string;
 };
@@ -33,14 +33,15 @@ async function loadPackageMeta(slug: string): Promise<PackageMeta | null> {
     if (
       typeof parsed.name === 'string' &&
       typeof parsed.slug === 'string' &&
-      typeof parsed.role === 'string' &&
+      Array.isArray(parsed.roles) &&
+      parsed.roles.every((r) => typeof r === 'string') &&
       Array.isArray(parsed.skills) &&
       parsed.skills.every((s) => typeof s === 'string')
     ) {
       return {
         name: parsed.name,
         slug: parsed.slug,
-        role: parsed.role,
+        roles: parsed.roles,
         skills: parsed.skills,
         createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : undefined,
       };
@@ -89,7 +90,7 @@ export default async function DownloadPage() {
   const readme = buildReadme({
     name: meta.name,
     slug: meta.slug,
-    role: meta.role,
+    roles: meta.roles,
     skills: meta.skills,
   });
 

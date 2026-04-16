@@ -35,7 +35,7 @@ async function seed(slug: string, sourceFiles: string[] = ['chat.md']) {
   for (const f of sourceFiles) {
     writeFileSync(path.join(src, f), 'stub content');
   }
-  await writeMeta(slug, { slug, name: slug, role: 'PM', sourceFiles });
+  await writeMeta(slug, { slug, name: slug, roles: ['PM'], sourceFiles });
 }
 
 function buildRequest(slug: string): Request {

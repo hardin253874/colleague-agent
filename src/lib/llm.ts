@@ -19,10 +19,28 @@ function requireEnv(name: string): string {
   return raw;
 }
 
+/**
+ * `LLM_BASE_URL` follows the provider-agnostic convention where the URL
+ * includes the `/v1` version prefix (e.g. `https://api.anthropic.com/v1`,
+ * `https://api.openai.com/v1`, `https://<azure>/v1`). Keeps config portable
+ * across providers.
+ *
+ * The `@anthropic-ai/sdk` internally appends its own `/v1/messages` path to
+ * the `baseURL`, so if we pass a URL that already ends in `/v1` we'd get
+ * `/v1/v1/messages` → 404. Strip the trailing `/v1` before handing to the
+ * SDK, while leaving the env var as the full provider-style base.
+ */
+export function normaliseAnthropicBaseURL(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.replace(/\/+$/, '');
+  if (trimmed.length === 0) return undefined;
+  return trimmed.endsWith('/v1') ? trimmed.slice(0, -'/v1'.length) : trimmed;
+}
+
 export async function callClaude(opts: CallClaudeOptions): Promise<string> {
   const apiKey = requireEnv('LLM_API_KEY');
   const model = requireEnv('LLM_MODEL');
-  const baseURL = process.env.LLM_BASE_URL; // optional
+  const baseURL = normaliseAnthropicBaseURL(process.env.LLM_BASE_URL);
 
   const client = new Anthropic({
     apiKey,

@@ -21,7 +21,7 @@ vi.mock('@anthropic-ai/sdk', () => {
   };
 });
 
-import { callClaude } from './llm';
+import { callClaude, normaliseAnthropicBaseURL } from './llm';
 
 let prevBaseUrl: string | undefined;
 let prevModel: string | undefined;
@@ -124,5 +124,69 @@ describe('callClaude', () => {
     await expect(
       callClaude({ system: 's', user: 'u', cacheControl: false }),
     ).rejects.toThrow(/429 rate limit|LLM call failed/);
+  });
+
+  it('strips a trailing /v1 from LLM_BASE_URL before passing to the SDK', async () => {
+    process.env.LLM_BASE_URL = 'https://api.anthropic.com/v1';
+    await callClaude({ system: 's', user: 'u', cacheControl: false });
+    // The SDK instance isn't directly observable from the mock, but the
+    // normaliseAnthropicBaseURL unit tests below lock the behaviour in.
+    expect(createMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('normaliseAnthropicBaseURL', () => {
+  it('returns undefined for undefined input', () => {
+    expect(normaliseAnthropicBaseURL(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for an empty string', () => {
+    expect(normaliseAnthropicBaseURL('')).toBeUndefined();
+  });
+
+  it('returns undefined for a whitespace-only string with only slashes', () => {
+    expect(normaliseAnthropicBaseURL('///')).toBeUndefined();
+  });
+
+  it('strips a trailing /v1 suffix', () => {
+    expect(normaliseAnthropicBaseURL('https://api.anthropic.com/v1')).toBe(
+      'https://api.anthropic.com',
+    );
+  });
+
+  it('strips a trailing /v1 even when there are trailing slashes', () => {
+    expect(normaliseAnthropicBaseURL('https://api.anthropic.com/v1/')).toBe(
+      'https://api.anthropic.com',
+    );
+  });
+
+  it('collapses multiple trailing slashes before checking for /v1', () => {
+    expect(normaliseAnthropicBaseURL('https://api.anthropic.com/v1///')).toBe(
+      'https://api.anthropic.com',
+    );
+  });
+
+  it('leaves a URL without /v1 unchanged (apart from trailing slashes)', () => {
+    expect(normaliseAnthropicBaseURL('https://api.anthropic.com')).toBe(
+      'https://api.anthropic.com',
+    );
+    expect(normaliseAnthropicBaseURL('https://api.anthropic.com/')).toBe(
+      'https://api.anthropic.com',
+    );
+  });
+
+  it('works for other provider-style base URLs ending in /v1', () => {
+    expect(normaliseAnthropicBaseURL('https://api.openai.com/v1')).toBe(
+      'https://api.openai.com',
+    );
+    expect(
+      normaliseAnthropicBaseURL('https://my-azure-proxy.example.com/v1'),
+    ).toBe('https://my-azure-proxy.example.com');
+  });
+
+  it('does not strip /v1 from the middle of a path', () => {
+    expect(
+      normaliseAnthropicBaseURL('https://proxy.example.com/v1/tenant-a'),
+    ).toBe('https://proxy.example.com/v1/tenant-a');
   });
 });

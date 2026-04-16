@@ -4,13 +4,19 @@ import { useActionState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
 import { RadioGroup, Radio } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { WizardStep } from '@/components/WizardStep';
-import { saveBasicInfo, type BasicInfoState } from './actions';
+import { saveBasicInfo } from './actions';
+import { type BasicInfoState } from './schema';
 
 const INITIAL: BasicInfoState = { ok: false, errors: {} };
+
+const ROLE_OPTIONS = ['PM', 'Developer', 'Designer', 'Evaluator'] as const;
+
+const CHECKBOX_INPUT_CLASSES =
+  'w-4 h-4 rounded border-slate-300 text-indigo-500 ' +
+  'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2';
 
 export default function BasicInfoPage() {
   const [state, formAction] = useActionState(saveBasicInfo, INITIAL);
@@ -19,7 +25,7 @@ export default function BasicInfoPage() {
     <WizardStep stepNumber={1}>
       <h1 className="text-2xl font-semibold text-slate-900">Basic Information</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Tell us who this colleague is. Only name and role are required.
+        Tell us who this colleague is. Only name and at least one role are required.
       </p>
 
       <form action={formAction} className="mt-6 space-y-4">
@@ -34,18 +40,37 @@ export default function BasicInfoPage() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="role">
-            Role <span className="text-red-500">*</span>
-          </Label>
-          <Select id="role" name="role" required defaultValue="">
-            <option value="" disabled>Select role...</option>
-            <option value="PM">PM</option>
-            <option value="Developer">Developer</option>
-            <option value="Designer">Designer</option>
-            <option value="Evaluator">Evaluator</option>
-          </Select>
-          {state.errors?.role && (
-            <p className="text-xs text-red-600 mt-1">{state.errors.role}</p>
+          <fieldset>
+            <legend className="text-sm font-medium text-slate-700">
+              Roles <span className="text-red-500">*</span>
+            </legend>
+            <p className="text-xs text-slate-500 mt-1">
+              Select one or more. The bundled skill set is the union across selected roles.
+            </p>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              {ROLE_OPTIONS.map((role) => {
+                const inputId = `role-${role}`;
+                return (
+                  <label
+                    key={role}
+                    htmlFor={inputId}
+                    className="flex items-center gap-2 cursor-pointer select-none"
+                  >
+                    <input
+                      id={inputId}
+                      type="checkbox"
+                      name="roles"
+                      value={role}
+                      className={CHECKBOX_INPUT_CLASSES}
+                    />
+                    <span className="text-sm text-slate-700">{role}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          {state.errors?.roles && (
+            <p className="text-xs text-red-600 mt-1">{state.errors.roles}</p>
           )}
         </div>
 
@@ -59,7 +84,7 @@ export default function BasicInfoPage() {
             </RadioGroup>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="mbti">MBTI (optional, for fun)</Label>
+            <Label htmlFor="mbti">MBTI (optional, <a href="https://www.16personalities.com/free-personality-test" target="_blank" className='underline'>for fun</a>)</Label>
             <Input id="mbti" name="mbti" type="text" placeholder="e.g. INTJ" />
           </div>
         </div>

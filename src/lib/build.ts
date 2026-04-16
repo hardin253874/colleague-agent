@@ -4,7 +4,7 @@ import path from 'node:path';
 import { getDataDir, readMeta } from './storage';
 import { parseFile } from './parsers';
 import { ingestText } from './rag';
-import { skillsForRole, SUPPORTED_ROLES, type Role } from './role-skills';
+import { skillsForRoles, SUPPORTED_ROLES, type Role } from './role-skills';
 import { buildMcpConfig } from './mcp-config';
 import { composeAgentFile } from './agent-file';
 
@@ -17,11 +17,20 @@ export type BuildResult =
   | { ok: true; ingested: string[]; failed: BuildFailure[] }
   | { ok: false; error: string };
 
-function normaliseRole(raw: unknown): Role {
-  if (typeof raw === 'string' && (SUPPORTED_ROLES as string[]).includes(raw)) {
-    return raw as Role;
+function normaliseRoles(raw: unknown): Role[] {
+  if (!Array.isArray(raw)) return ['Developer'];
+  const supported = new Set<string>(SUPPORTED_ROLES as string[]);
+  const seen = new Set<Role>();
+  const out: Role[] = [];
+  for (const item of raw) {
+    if (typeof item !== 'string') continue;
+    if (!supported.has(item)) continue;
+    const role = item as Role;
+    if (seen.has(role)) continue;
+    seen.add(role);
+    out.push(role);
   }
-  return 'Developer';
+  return out.length > 0 ? out : ['Developer'];
 }
 
 async function listKnowledgeFiles(slug: string): Promise<string[]> {
@@ -63,8 +72,8 @@ export async function runBuild(slug: string): Promise<BuildResult> {
     return { ok: false, error: `persona.md not found at ${personaPath}` };
   }
 
-  const role = normaliseRole(meta.role);
-  const skills = skillsForRole(role);
+  const roles = normaliseRoles(meta.roles);
+  const skills = skillsForRoles(roles);
 
   // 2. Ingest knowledge files.
   const knowledgeDir = path.join(getDataDir(), slug, 'knowledge');
@@ -98,7 +107,7 @@ export async function runBuild(slug: string): Promise<BuildResult> {
   const agentFile = composeAgentFile({
     name: String(meta.name ?? slug),
     slug,
-    role,
+    roles,
     personaText,
     skills,
     gender: typeof meta.gender === 'string' ? meta.gender : undefined,
@@ -109,7 +118,7 @@ export async function runBuild(slug: string): Promise<BuildResult> {
   const packageMeta = {
     slug,
     name: meta.name,
-    role,
+    roles,
     skills,
     createdAt: meta.createdAt ?? new Date().toISOString(),
   };

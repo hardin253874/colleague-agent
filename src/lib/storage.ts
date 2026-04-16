@@ -27,7 +27,7 @@ export type UploadDestination = 'source' | 'knowledge';
 export interface ColleagueMeta {
   slug: string;
   name: string;
-  role?: string;
+  roles?: string[];
   gender?: string;
   mbti?: string;
   impression?: string;

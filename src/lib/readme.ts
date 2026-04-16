@@ -1,7 +1,7 @@
 export interface ReadmeInput {
   name: string;
   slug: string;
-  role: string;
+  roles: string[];
   skills: string[];
 }
 
@@ -10,10 +10,12 @@ export interface ReadmeInput {
  * zip bundle. The same string is rendered as install instructions on
  * `/wizard/download` (Page 5) — single source of truth.
  *
- * Pure function, no I/O.
+ * Pure function, no I/O. `roles` is always an array (single-role colleagues
+ * pass `['Developer']`). Roles are joined with " / " in the role sentence.
  */
 export function buildReadme(input: ReadmeInput): string {
-  const { name, slug, role, skills } = input;
+  const { name, slug, roles, skills } = input;
+  const roleLabel = roles.join(' / ');
 
   const skillLines = skills
     .map((s) => `  - \`.claude/skills/${s}/SKILL.md\``)
@@ -33,9 +35,94 @@ ${skillLines}
 
 ## Install in Claude Code
 
-1. Unzip this package into the root of your Claude Code project.
-2. Restart Claude Code so the new agent and skills are discovered.
-3. Ask Claude: "Use the ${slug} agent to ..." or invoke it directly via the Agent tool.
+1. Unzip this package into the root of your Claude Code project (the folder
+   that already contains — or will contain — a \`.claude/\` directory).
+2. Restart Claude Code. On first launch after the restart, Claude Code will
+   prompt you to approve the MCP server declared in \`.mcp.json\` — accept it
+   so the knowledge base becomes available.
+3. Paste the **Activation prompt** below into Claude Code to confirm the
+   agent, skills, and knowledge base all loaded correctly.
+
+### Activation prompt (copy-paste verbatim)
+
+\`\`\`
+I just installed the "${slug}" colleague agent package in this project.
+Please do the following, in order, and report back:
+
+1. Read \`.claude/agents/${slug}.md\` and confirm the agent is registered.
+   Tell me the agent's role(s) and list the skill files referenced in its
+   Capabilities table.
+2. Check \`.mcp.json\` and confirm the knowledge-base MCP server is
+   configured. Call its \`search_knowledge_base\` tool with a short probe
+   query (e.g. "who is ${name}") and show me the first result so I can
+   verify retrieval works.
+3. For each skill under \`.claude/skills/\`, read the \`SKILL.md\` frontmatter
+   and list the skill name + one-line description.
+4. From now on, when I ask you to "use the ${slug} agent" or "@${slug}",
+   dispatch the Agent tool with \`subagent_type: "${slug}"\` so I'm talking
+   to the colleague persona, not to you directly.
+
+Once all four steps are done, greet me briefly in ${name}'s voice so I know
+the persona loaded.
+\`\`\`
+
+If any step fails, tell Claude the error and ask it to diagnose — the most
+common issues are (a) the zip was unpacked into the wrong folder so
+\`.claude/\` isn't at the project root, or (b) the MCP server wasn't approved
+on restart.
+
+## Using the agent
+
+Once activated, there are three ways to invoke ${name}:
+
+1. **Inline reference** — anywhere in your chat, say:
+   > "Use the ${slug} agent to review this PR description."
+   > "Ask ${slug} how they'd approach the caching layer here."
+
+   Claude Code will dispatch a subagent run under the hood and return
+   ${name}'s response in-channel.
+
+2. **Direct @-mention** (if your Claude Code version supports it):
+   > "@${slug} what's your take on the migration plan in \`plan.md\`?"
+
+3. **Explicit Agent tool call** — useful when you want a long-running task
+   run in isolation: ask Claude to "launch the ${slug} agent with
+   subagent_type ${slug} to [task]". Claude will call the Agent/Task tool
+   with that subagent_type and stream the result back.
+
+### What the agent will do automatically
+
+- **Persona first** — every response is spoken in ${name}'s voice. Voice
+  rules (tone, catchphrases, ESL quirks if any) live in the Persona section
+  of \`.claude/agents/${slug}.md\` and override all other instructions.
+- **Knowledge base retrieval** — before answering any factual question about
+  projects, people, or prior decisions, the agent calls the
+  \`search_knowledge_base\` MCP tool and only answers from retrieved
+  context. If nothing relevant comes back, it says so instead of guessing.
+- **Skill dispatch** — when your request matches a skill in the Capabilities
+  table (e.g. \`test-driven-development\`, \`systematic-debugging\`), the
+  agent reads that skill file and follows its process, still speaking in
+  ${name}'s voice.
+
+### Example prompts to try
+
+- "Use ${slug} to critique this function: \`[paste code]\`."
+- "Ask ${slug} what they remember about the NESA assessment flow redesign."
+- "Use ${slug} to walk me through how they'd debug an intermittent CI
+  failure — apply their usual systematic-debugging approach."
+- "Use ${slug} to write a plan for migrating the auth service, following
+  their planning style."
+
+### Tips
+
+- **Re-activate after pulling updates.** If this package is re-generated
+  later with new source material, unzip over the old files and re-run the
+  activation prompt to refresh the knowledge base.
+- **Knowledge base is append-only.** The RAG backend retains previously
+  ingested documents; re-ingesting adds to, rather than replaces, the
+  corpus.
+- **Persona vs skill conflicts.** If a skill's process contradicts the
+  persona's core rules, the persona wins — this is by design.
 
 ## Using with OpenClaw, Codex, or other tools
 
@@ -49,6 +136,6 @@ markdown and transfers cleanly.
 
 ## Role
 
-This agent's role is **${role}**.
+This agent's role is **${roleLabel}**.
 `;
 }

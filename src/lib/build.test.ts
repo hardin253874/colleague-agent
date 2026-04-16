@@ -24,7 +24,7 @@ function seed(slug: string, opts: {
         opts.meta ?? {
           slug,
           name: 'Oleg Putilin',
-          role: 'Developer',
+          roles: ['Developer'],
           createdAt: '2026-04-14T00:00:00Z',
         },
       ),
@@ -86,12 +86,12 @@ describe('runBuild', () => {
     expect(agent).toContain('PERSONA_BODY_FIXTURE');
   });
 
-  it('agent-package meta.json captures slug/name/role/skills/createdAt', async () => {
+  it('agent-package meta.json captures slug/name/roles/skills/createdAt', async () => {
     seed('oleg', {
       meta: {
         slug: 'oleg',
         name: 'Oleg Putilin',
-        role: 'Developer',
+        roles: ['Developer'],
         createdAt: '2026-04-14T00:00:00Z',
       },
     });
@@ -105,9 +105,37 @@ describe('runBuild', () => {
     expect(meta).toMatchObject({
       slug: 'oleg',
       name: 'Oleg Putilin',
-      role: 'Developer',
+      roles: ['Developer'],
       skills: expect.arrayContaining(['test-driven-development']),
     });
+  });
+
+  it('multi-role: agent-package skills is the deduped union of all selected roles', async () => {
+    seed('multi', {
+      meta: {
+        slug: 'multi',
+        name: 'Multi Role',
+        roles: ['PM', 'Developer'],
+        createdAt: '2026-04-14T00:00:00Z',
+      },
+    });
+    vi.spyOn(ragModule, 'ingestText').mockResolvedValue({ ok: true });
+
+    await runBuild('multi');
+
+    const meta = JSON.parse(
+      readFileSync(path.join(tmp, 'multi', 'agent-package', 'meta.json'), 'utf8'),
+    );
+    // Union, PM first (brainstorming, writing-plans), then Developer's additions.
+    expect(meta.skills).toEqual([
+      'brainstorming',
+      'writing-plans',
+      'test-driven-development',
+      'systematic-debugging',
+      'executing-plans',
+      'requesting-code-review',
+    ]);
+    expect(meta.roles).toEqual(['PM', 'Developer']);
   });
 
   it('POSTs each knowledge file to RAG with the filename as source', async () => {

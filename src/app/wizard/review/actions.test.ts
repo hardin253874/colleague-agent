@@ -71,7 +71,7 @@ describe('saveAndProceed — Build wiring (2d)', () => {
     mkdirSync(path.join(dir, 'persona'), { recursive: true });
     writeFileSync(
       path.join(dir, 'meta.json'),
-      JSON.stringify({ slug: 'alice-1', name: 'Alice', role: 'Developer' }),
+      JSON.stringify({ slug: 'alice-1', name: 'Alice', roles: ['Developer'] }),
     );
   });
 

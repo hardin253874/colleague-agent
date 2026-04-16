@@ -13,7 +13,7 @@ let prevDataDir: string | undefined;
 const SEED_META = {
   slug: 'oleg',
   name: 'Oleg Putilin',
-  role: 'Developer',
+  roles: ['Developer'],
   skills: ['writing-plans', 'test-driven-development'],
   createdAt: '2026-04-14T00:00:00Z',
 };
@@ -109,5 +109,13 @@ describe('buildZipBuffer', () => {
     const zip = await JSZip.loadAsync(buf);
     const metaStr = await zip.file('meta.json')!.async('string');
     expect(JSON.parse(metaStr)).toEqual(SEED_META);
+  });
+
+  it('renders the roles array in the bundled README (single-role)', async () => {
+    seedAgentPackage('oleg');
+    const buf = await buildZipBuffer('oleg');
+    const zip = await JSZip.loadAsync(buf);
+    const readme = await zip.file('README.md')!.async('string');
+    expect(readme).toMatch(/role is \*\*Developer\*\*/);
   });
 });

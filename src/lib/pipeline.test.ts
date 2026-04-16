@@ -48,7 +48,7 @@ async function seed(slug: string, files: Record<string, string>, meta: Record<st
 
 describe('runAnalyze — happy path', () => {
   it('makes 2 LLM calls and writes three artifacts', async () => {
-    await seed('alice-1', { 'chat.md': 'Hi Alice' }, { name: 'Alice', role: 'PM' });
+    await seed('alice-1', { 'chat.md': 'Hi Alice' }, { name: 'Alice', roles: ['PM'] });
 
     const analyzerJson = {
       identity: { name: 'Alice', role: 'PM', company: null, language_notes: null, bio_notes: [] },
@@ -86,7 +86,7 @@ describe('runAnalyze — happy path', () => {
   });
 
   it('passes cacheControl: true on both calls (prompt caching on system)', async () => {
-    await seed('bob-1', { 'chat.md': 'Hi' }, { name: 'Bob', role: 'PM' });
+    await seed('bob-1', { 'chat.md': 'Hi' }, { name: 'Bob', roles: ['PM'] });
     callClaudeMock
       .mockResolvedValueOnce('{"identity":{},"related_projects":[],"gaps":[],"used_profile":false}')
       .mockResolvedValueOnce('# Bob — Persona');
@@ -100,7 +100,7 @@ describe('runAnalyze — happy path', () => {
     await seed(
       'carol-1',
       { 'profile.md': 'Carol profile text', 'chat.md': 'Hi' },
-      { name: 'Carol', role: 'PM', sourceFiles: ['profile.md', 'chat.md'] },
+      { name: 'Carol', roles: ['PM'], sourceFiles: ['profile.md', 'chat.md'] },
     );
     callClaudeMock
       .mockResolvedValueOnce('{"identity":{},"related_projects":[],"gaps":[],"used_profile":true}')
@@ -114,13 +114,13 @@ describe('runAnalyze — happy path', () => {
 
 describe('runAnalyze — error paths', () => {
   it('throws when there are zero source files', async () => {
-    await seed('empty-1', {}, { name: 'Empty', role: 'PM', sourceFiles: [] });
+    await seed('empty-1', {}, { name: 'Empty', roles: ['PM'], sourceFiles: [] });
     await expect(runAnalyze('empty-1')).rejects.toThrow(/no source files/i);
     expect(callClaudeMock).toHaveBeenCalledTimes(0);
   });
 
   it('still writes artifacts when analyzer output is not valid JSON (raw-fallback)', async () => {
-    await seed('rawfb-1', { 'chat.md': 'hi' }, { name: 'R', role: 'PM' });
+    await seed('rawfb-1', { 'chat.md': 'hi' }, { name: 'R', roles: ['PM'] });
     callClaudeMock
       .mockResolvedValueOnce('not valid json at all')
       .mockResolvedValueOnce('# R — Persona');
@@ -133,7 +133,7 @@ describe('runAnalyze — error paths', () => {
   });
 
   it('propagates an LLM error with slug context', async () => {
-    await seed('err-1', { 'chat.md': 'hi' }, { name: 'E', role: 'PM' });
+    await seed('err-1', { 'chat.md': 'hi' }, { name: 'E', roles: ['PM'] });
     callClaudeMock.mockRejectedValueOnce(new Error('boom'));
     await expect(runAnalyze('err-1')).rejects.toThrow(/err-1|boom/);
   });
