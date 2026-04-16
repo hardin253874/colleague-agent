@@ -57,49 +57,4 @@ pnpm start           # serve the production build locally
 npx tsc --noEmit     # type-check only
 ```
 
-## Deployment (Fly.io)
 
-The deployment artefacts (`Dockerfile`, `fly.toml`, `.dockerignore`) are
-checked in. First-time deploy:
-
-```bash
-# 1. Install flyctl (https://fly.io/docs/flyctl/install/) and authenticate
-flyctl auth login
-
-# 2. Create the app (uses the existing fly.toml; rename `app` first if taken)
-flyctl launch --no-deploy --copy-config --name colleague-agent --region syd
-
-# 3. Create the persistent volume (1 GB in syd, free tier)
-flyctl volumes create data --size 1 --region syd
-
-# 4. Set runtime secrets (NEVER commit these)
-flyctl secrets set \
-  LLM_BASE_URL=https://api.anthropic.com/v1 \
-  LLM_MODEL=claude-sonnet-4-6 \
-  LLM_API_KEY=<rotated-anthropic-key> \
-  RAG_INGEST_URL=https://rag-chatbot-v3-production.up.railway.app/ingest/text
-
-# 5. Deploy
-flyctl deploy
-```
-
-Subsequent deploys are just `flyctl deploy`. Liveness check:
-`https://<app>.fly.dev/api/health` returns `{"status":"ok"}`.
-
-## Dependencies on external services
-
-- **Anthropic API** (Claude Sonnet 4.6) — the generation pipeline calls
-  Messages API with prompt caching.
-- **RAG backend** (`rag-chatbot-v3`) — knowledge files are ingested at build
-  time via `POST` to the ingest endpoint. The deployed app needs egress to
-  `https://rag-chatbot-v3-production.up.railway.app/ingest/text`. At agent
-  runtime (inside Claude Code), the generated package also references the
-  RAG MCP server at `https://rag-chatbot-v3-mcp.fly.dev/sse` — but that's
-  used by the downstream agent, not by this app.
-
-## Further reading
-
-Architecture, decisions, and sprint plans live in
-`working/colleague-agents/Plans/` (outside this repo). The locked spec is
-`Plans/01. Architecture - Next.js on Fly.io.md`. Project conventions and the
-superpowers-skills workflow are documented in `CLAUDE.md`.
