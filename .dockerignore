@@ -1,0 +1,40 @@
+# Build artefacts and dependencies — rebuilt inside the image
+node_modules
+.next
+out
+dist
+coverage
+
+# Local development data — never ship this to Fly.io
+data
+.env
+.env.*
+!.env.example
+
+# VCS / editor noise
+.git
+.gitignore
+.vscode
+.idea
+*.log
+*.tsbuildinfo
+
+# Tests and ephemeral artefacts (runtime image doesn't need them)
+tests
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+vitest.config.ts
+vitest.setup.ts
+
+# Documentation, planning, and historical material
+archive
+SPRINT_EVALUATION_*.md
+README.md
+CLAUDE.md
+LICENSE
+
+# Working notes and AgentTeam scaffolding (lives outside repo, but defensive)
+AgentTeam
+working
