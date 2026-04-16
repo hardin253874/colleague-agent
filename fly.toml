@@ -1,11 +1,11 @@
-# Fly.io deploy config for webcoda-colleague-agent.
-# Generated for sub-sprint 2f-i. Kun runs `flyctl launch --no-deploy` (or
+# Fly.io deploy config for colleague-agent.
+# Generated for sub-sprint 2f-i. runs `flyctl launch --no-deploy` (or
 # `flyctl apps create` + this file as-is) and `flyctl deploy` in 2f-ii.
 #
-# Region: syd (Sydney — closest to Webcoda).
+# Region: syd (Sydney — closest to me).
 # Hosting plan: free tier, shared-cpu-1x, 512 MB RAM, 1 GB persistent volume.
 
-app = "webcoda-colleague-agent"
+app = "colleague-agent"
 primary_region = "syd"
 
 [build]
